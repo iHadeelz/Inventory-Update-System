@@ -3,113 +3,81 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تحديث المخزون</title>
-
-  <!-- مكتبة Chart.js -->
+  <title>إدارة المخزون والمبيعات</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- تنسيق CSS -->
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #faf3f5;
-      color: #333;
+      background: linear-gradient(to bottom, #f9f7ff, #fef5f5);
       margin: 0;
       padding: 0;
     }
-
-    h1 {
-      background-color: #5a5a5a;
-      color: white;
+    h1, h2 {
       text-align: center;
-      padding: 12px;
-      margin: 0;
-      font-size: 1.3em;
+      color: #5e60ce;
     }
-
     .container {
       display: flex;
-      justify-content: space-between;
-      padding: 15px;
       flex-wrap: wrap;
-      gap: 25px;
+      justify-content: space-around;
+      padding: 20px;
     }
-
     .section {
-      background-color: white;
+      background: #ffffff;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      padding: 10px;
-      width: 48%;
+      padding: 20px;
+      width: 100%;
+      margin: 10px;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 15px;
+      margin: 20px 0;
     }
-
     th, td {
-      padding: 8px;
+      padding: 10px;
       text-align: center;
-      border: 1px solid #ddd;
-      font-size: 1em;
+      border: 1px solid #dee2e6;
     }
-
     th {
-      background-color: #5a5a5a;
-      color: white;
+      background-color: #5e60ce;
+      color: #fff;
     }
-
     td {
-      background-color: #fef0f5;
+      background-color: #f9f9ff;
     }
-
-    .update-form {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      margin-top: 5px;
-    }
-
-    .update-form input[type="number"] {
+    input[type="number"] {
       padding: 5px;
-      font-size: 1em;
-      width: 80px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+      width: 60%;
+      margin: 5px 0;
     }
-
-    .update-form button {
+    button {
       padding: 5px 10px;
-      background-color: #5a5a5a;
+      background-color: #007bff;
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      font-size: 1em;
-      transition: background-color 0.3s;
     }
-
-    .update-form button:hover {
-      background-color: #d67cae;
+    button:hover {
+      background-color: #0056b3;
     }
-
+    .chart-container {
+      display: flex;
+      justify-content: space-between; /* Align charts side by side */
+      margin-top: 20px;
+    }
+    .chart {
+      width: 48%; /* Each chart takes up about half the width */
+      max-height: 400px;
+    }
     canvas {
-      margin-top: 15px;
+      margin: 10px;
       width: 100%;
-      max-width: 100%;
-      height: 250px;
-      border: 1px solid #ddd;
-    }
-
-    @media (max-width: 768px) {
-      .section {
-        width: 100%;
-      }
+      height: auto;
     }
   </style>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
@@ -117,204 +85,203 @@
     const firebaseConfig = {
       apiKey: "AIzaSyC-hgcKLED99nXYNCso9I5IUWwr4sG_ufE",
       authDomain: "chocola-shop-274e3.firebaseapp.com",
-      databaseURL: "https://chocola-shop-274e3-default-rtdb.firebaseio.com",
       projectId: "chocola-shop-274e3",
-      storageBucket: "chocola-shop-274e3.appspot.com",
-      messagingSenderId: "723756715672",
-      appId: "1:723756715672:web:13140a3d0221846adb0aed",
-      measurementId: "G-4J61KLNMPC"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const flowerLabels = [];
-    const flowerSoldData = [];
-    const flowerStockData = [];
-
-    const chocolateLabels = [];
-    const chocolateSoldData = [];
-    const chocolateStockData = [];
-
     const fetchData = async () => {
-      try {
-        const flowerSnapshot = await getDocs(collection(db, "flower"));
-        const flowerTable = document.getElementById("flower-table-body");
-        flowerSnapshot.forEach((doc) => {
-          const data = doc.data();
-          flowerLabels.push(doc.id);
-          flowerSoldData.push(data.sold);
-          flowerStockData.push(data.stock);
+      const flowerTableBody = document.getElementById("flower-table-body");
+      const chocolateTableBody = document.getElementById("chocolate-table-body");
+      const flowerLabels = [], flowerSoldData = [], flowerStockData = [];
+      const chocolateLabels = [], chocolateSoldData = [], chocolateStockData = [];
 
-          const row = flowerTable.insertRow();
-          row.innerHTML = ` 
+      const renderTable = async (collectionName, tableBody, labels, soldData, stockData) => {
+        const snapshot = await getDocs(collection(db, collectionName));
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          labels.push(doc.id);
+          soldData.push(data.sold);
+          stockData.push(data.stock);
+
+          const row = tableBody.insertRow();
+          row.innerHTML = `
             <td>${doc.id}</td>
             <td>${data.sold}</td>
             <td>${data.stock}</td>
             <td>
-              <form class="update-form" onsubmit="updateStock(event, '${doc.id}', 'flower')">
+              <form onsubmit="updateStock(event, '${doc.id}', '${collectionName}')">
                 <input type="number" placeholder="كمية جديدة" min="0" required>
-                <button type="submit">تحديث</button>
+                <button type="submit">تحديث المخزون</button>
               </form>
-            </td>`;
-        });
-
-        const chocolateSnapshot = await getDocs(collection(db, "chocolate"));
-        const chocolateTable = document.getElementById("chocolate-table-body");
-        chocolateSnapshot.forEach((doc) => {
-          const data = doc.data();
-          chocolateLabels.push(doc.id);
-          chocolateSoldData.push(data.sold);
-          chocolateStockData.push(data.stock);
-
-          const row = chocolateTable.insertRow();
-          row.innerHTML = ` 
-            <td>${doc.id}</td>
-            <td>${data.sold}</td>
-            <td>${data.stock}</td>
+            </td>
             <td>
-              <form class="update-form" onsubmit="updateStock(event, '${doc.id}', 'chocolate')">
-                <input type="number" placeholder="كمية جديدة" min="0" required>
-                <button type="submit">تحديث</button>
+              <form onsubmit="updateSold(event, '${doc.id}', '${collectionName}')">
+                <input type="number" placeholder="كمية مباعة" min="0" required>
+                <button type="submit">تحديث المبيعات</button>
               </form>
-            </td>`;
+            </td>
+          `;
         });
+      };
 
-        drawCharts();
-      } catch (error) {
-        console.error("خطأ أثناء جلب البيانات:", error);
-      }
+      await renderTable("flower", flowerTableBody, flowerLabels, flowerSoldData, flowerStockData);
+      await renderTable("chocolate", chocolateTableBody, chocolateLabels, chocolateSoldData, chocolateStockData);
+
+      drawCharts(flowerLabels, flowerSoldData, flowerStockData, chocolateLabels, chocolateSoldData, chocolateStockData);
     };
 
     window.updateStock = async (event, itemId, collectionName) => {
       event.preventDefault();
       const newStockValue = parseInt(event.target.querySelector("input").value);
-
       try {
         const itemDoc = doc(db, collectionName, itemId);
         const itemData = (await getDoc(itemDoc)).data();
         const updatedStock = itemData.stock + newStockValue;
-
         await updateDoc(itemDoc, { stock: updatedStock });
         alert(`تم تحديث المخزون لـ "${itemId}" بنجاح! الكمية الجديدة: ${updatedStock}`);
         window.location.reload();
       } catch (error) {
-        console.error("خطأ أثناء تحديث المخزون:", error);
-        alert("حدث خطأ أثناء التحديث. حاول مرة أخرى.");
+        console.error(error);
       }
     };
 
-    const drawCharts = () => {
-      new Chart(document.getElementById("flower-chart"), {
+    window.updateSold = async (event, itemId, collectionName) => {
+      event.preventDefault();
+      const soldQuantity = parseInt(event.target.querySelector("input").value);
+      try {
+        const itemDoc = doc(db, collectionName, itemId);
+        const itemData = (await getDoc(itemDoc)).data();
+        const updatedSold = itemData.sold + soldQuantity;
+        const updatedStock = itemData.stock - soldQuantity;
+
+        if (updatedStock < 0) {
+          alert("المخزون غير كافٍ.");
+          return;
+        }
+
+        await updateDoc(itemDoc, { sold: updatedSold, stock: updatedStock });
+        alert(`تم تحديث الكمية المباعة لـ "${itemId}" بنجاح!`);
+        window.location.reload();
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const drawCharts = (flowerLabels, flowerSoldData, flowerStockData, chocolateLabels, chocolateSoldData, chocolateStockData) => {
+      // Flower Bar Chart
+      new Chart(document.getElementById("flower-bar-chart"), {
         type: "bar",
         data: {
           labels: flowerLabels,
           datasets: [
-            {
-              label: "الكمية المباعة",
-              data: flowerSoldData,
-              backgroundColor: "rgba(248, 165, 194, 0.5)",  
-              borderColor: "rgba(248, 165, 194, 1)",
-            },
-            {
-              label: "المخزون",
-              data: flowerStockData,
-              backgroundColor: "rgba(135, 206, 235, 0.5)", 
-              borderColor: "rgba(135, 206, 235, 1)",
-            },
-          ],
-        },
-      });
-
-      new Chart(document.getElementById("flower-pie-chart"), {
-        type: "pie",
-        data: {
-          labels: flowerLabels,
-          datasets: [{
-            label: "المخزون مقابل الكمية المباعة",
-            data: flowerStockData.map((stock, index) => stock + flowerSoldData[index]),
-            backgroundColor: ["#f8a5c2", "#87ceeb", "#dda0dd"]
-          }]
+            { label: "المبيعات", data: flowerSoldData, backgroundColor: "#f9c6d8" },
+            { label: "المخزون", data: flowerStockData, backgroundColor: "#d7c6f9" }
+          ]
         }
       });
 
-      new Chart(document.getElementById("chocolate-chart"), {
+      // Chocolate Bar Chart
+      new Chart(document.getElementById("chocolate-bar-chart"), {
         type: "bar",
         data: {
           labels: chocolateLabels,
           datasets: [
-            {
-              label: "الكمية المباعة",
-              data: chocolateSoldData,
-              backgroundColor: "rgba(135, 206, 235, 0.5)",
-              borderColor: "rgba(135, 206, 235, 1)",
-            },
-            {
-              label: "المخزون",
-              data: chocolateStockData,
-              backgroundColor: "rgba(221, 160, 221, 0.5)",
-              borderColor: "rgba(221, 160, 221, 1)",
-            },
-          ],
-        },
+            { label: "المبيعات", data: chocolateSoldData, backgroundColor: "#f9c6d8" },
+            { label: "المخزون", data: chocolateStockData, backgroundColor: "#d7c6f9" }
+          ]
+        }
       });
 
+      // Flower Pie Chart
+      new Chart(document.getElementById("flower-pie-chart"), {
+        type: "pie",
+        data: {
+          labels: ["المبيعات", "المخزون"],
+          datasets: [
+            {
+              data: [
+                flowerSoldData.reduce((a, b) => a + b, 0),
+                flowerStockData.reduce((a, b) => a + b, 0)
+              ],
+              backgroundColor: ["#f9c6d8", "#d7c6f9"]
+            }
+          ]
+        }
+      });
+
+      // Chocolate Pie Chart
       new Chart(document.getElementById("chocolate-pie-chart"), {
         type: "pie",
         data: {
-          labels: chocolateLabels,
-          datasets: [{
-            label: "المخزون مقابل الكمية المباعة",
-            data: chocolateStockData.map((stock, index) => stock + chocolateSoldData[index]),
-            backgroundColor: ["#87ceeb", "#dda0dd", "#f8a5c2"]
-          }]
+          labels: ["المبيعات", "المخزون"],
+          datasets: [
+            {
+              data: [
+                chocolateSoldData.reduce((a, b) => a + b, 0),
+                chocolateStockData.reduce((a, b) => a + b, 0)
+              ],
+              backgroundColor: ["#f9c6d8", "#d7c6f9"]
+            }
+          ]
         }
       });
     };
 
-    fetchData();
+    window.onload = fetchData;
   </script>
 </head>
 <body>
-
-  <h1>تحديث المخزون</h1>
-
+  <h1>إدارة المخزون والمبيعات</h1>
   <div class="container">
     <div class="section">
-      <h2>المخزون والبيع للأزهار</h2>
+      <h2>الزهور</h2>
       <table>
         <thead>
           <tr>
             <th>الاسم</th>
-            <th>الكمية المباعة</th>
+            <th>المبيعات</th>
             <th>المخزون</th>
-            <th>التحديث</th>
+            <th>تحديث المخزون</th>
+            <th>تحديث المبيعات</th>
           </tr>
         </thead>
         <tbody id="flower-table-body"></tbody>
       </table>
-      <canvas id="flower-chart"></canvas>
-      <canvas id="flower-pie-chart"></canvas>
+      <div class="chart-container">
+        <div class="chart">
+          <canvas id="flower-bar-chart"></canvas>
+        </div>
+        <div class="chart">
+          <canvas id="flower-pie-chart"></canvas>
+        </div>
+      </div>
     </div>
 
     <div class="section">
-      <h2>المخزون والبيع للشوكولاتة</h2>
+      <h2>الشوكولاتة</h2>
       <table>
         <thead>
           <tr>
             <th>الاسم</th>
-            <th>الكمية المباعة</th>
+            <th>المبيعات</th>
             <th>المخزون</th>
-            <th>التحديث</th>
+            <th>تحديث المخزون</th>
+            <th>تحديث المبيعات</th>
           </tr>
         </thead>
         <tbody id="chocolate-table-body"></tbody>
       </table>
-      <canvas id="chocolate-chart"></canvas>
-      <canvas id="chocolate-pie-chart"></canvas>
+      <div class="chart-container">
+        <div class="chart">
+          <canvas id="chocolate-bar-chart"></canvas>
+        </div>
+        <div class="chart">
+          <canvas id="chocolate-pie-chart"></canvas>
+        </div>
+      </div>
     </div>
   </div>
-
 </body>
 </html>
- #f8a5c2
