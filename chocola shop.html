@@ -66,90 +66,142 @@
     .chart-container {
       display: flex;
       justify-content: space-between; /* Align charts side by side */
+      flex-wrap: wrap;
       margin-top: 20px;
     }
     .chart {
       width: 48%; /* Each chart takes up about half the width */
       max-height: 400px;
+      margin-bottom: 20px;
     }
     canvas {
       margin: 10px;
       width: 100%;
       height: auto;
     }
+    .low-stock {
+      background-color: #ffe5e5 !important;
+    }
+    .alert {
+      display: none;
+      padding: 10px;
+      background-color: #ffcccc;
+      color: #a94442;
+      border: 1px solid #ebccd1;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .alert ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+    .alert ul li {
+      margin: 5px 0;
+    }
   </style>
   <script type="module">
+    // استيراد مكتبات Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
+    // إعدادات Firebase لتحديد المشروع
     const firebaseConfig = {
       apiKey: "AIzaSyC-hgcKLED99nXYNCso9I5IUWwr4sG_ufE",
       authDomain: "chocola-shop-274e3.firebaseapp.com",
       projectId: "chocola-shop-274e3",
     };
 
+    // تهيئة تطبيق Firebase
     const app = initializeApp(firebaseConfig);
+    // إنشاء اتصال بقاعدة بيانات Firestore
     const db = getFirestore(app);
 
-    const fetchData = async () => {
-      const flowerTableBody = document.getElementById("flower-table-body");
-      const chocolateTableBody = document.getElementById("chocolate-table-body");
-      const flowerLabels = [], flowerSoldData = [], flowerStockData = [];
-      const chocolateLabels = [], chocolateSoldData = [], chocolateStockData = [];
+    // دوال المساعدة لرسم المخططات
+    let charts = {};
 
-      const renderTable = async (collectionName, tableBody, labels, soldData, stockData) => {
-        const snapshot = await getDocs(collection(db, collectionName));
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          labels.push(doc.id);
-          soldData.push(data.sold);
-          stockData.push(data.stock);
+    const initializeCharts = () => {
+      // مخططات الزهور
+      charts.flowerBar = new Chart(document.getElementById("flower-bar-chart"), {
+        type: "bar",
+        data: {
+          labels: [],
+          datasets: [
+            { label: "المبيعات", data: [], backgroundColor: "#f9c6d8" },
+            { label: "المخزون", data: [], backgroundColor: "#d7c6f9" }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
 
-          const row = tableBody.insertRow();
-          row.innerHTML = `
-            <td>${doc.id}</td>
-            <td>${data.sold}</td>
-            <td>${data.stock}</td>
-            <td>
-              <form onsubmit="updateStock(event, '${doc.id}', '${collectionName}')">
-                <input type="number" placeholder="كمية جديدة" min="0" required>
-                <button type="submit">تحديث المخزون</button>
-              </form>
-            </td>
-            <td>
-              <form onsubmit="updateSold(event, '${doc.id}', '${collectionName}')">
-                <input type="number" placeholder="كمية مباعة" min="0" required>
-                <button type="submit">تحديث المبيعات</button>
-              </form>
-            </td>
-          `;
-        });
-      };
+      charts.flowerPie = new Chart(document.getElementById("flower-pie-chart"), {
+        type: "pie",
+        data: {
+          labels: ["المبيعات", "المخزون"],
+          datasets: [{
+            data: [0, 0],
+            backgroundColor: ["#f9c6d8", "#d7c6f9"]
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
 
-      await renderTable("flower", flowerTableBody, flowerLabels, flowerSoldData, flowerStockData);
-      await renderTable("chocolate", chocolateTableBody, chocolateLabels, chocolateSoldData, chocolateStockData);
+      // مخططات الشوكولاتة
+      charts.chocolateBar = new Chart(document.getElementById("chocolate-bar-chart"), {
+        type: "bar",
+        data: {
+          labels: [],
+          datasets: [
+            { label: "المبيعات", data: [], backgroundColor: "#f9c6d8" },
+            { label: "المخزون", data: [], backgroundColor: "#d7c6f9" }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
 
-      drawCharts(flowerLabels, flowerSoldData, flowerStockData, chocolateLabels, chocolateSoldData, chocolateStockData);
+      charts.chocolatePie = new Chart(document.getElementById("chocolate-pie-chart"), {
+        type: "pie",
+        data: {
+          labels: ["المبيعات", "المخزون"],
+          datasets: [{
+            data: [0, 0],
+            backgroundColor: ["#f9c6d8", "#d7c6f9"]
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
     };
 
+    // دالة لتحديث المخزون
     window.updateStock = async (event, itemId, collectionName) => {
       event.preventDefault();
       const newStockValue = parseInt(event.target.querySelector("input").value);
+      if (isNaN(newStockValue) || newStockValue < 0) {
+        alert("الرجاء إدخال قيمة صحيحة للمخزون.");
+        return;
+      }
       try {
         const itemDoc = doc(db, collectionName, itemId);
         const itemData = (await getDoc(itemDoc)).data();
         const updatedStock = itemData.stock + newStockValue;
         await updateDoc(itemDoc, { stock: updatedStock });
         alert(`تم تحديث المخزون لـ "${itemId}" بنجاح! الكمية الجديدة: ${updatedStock}`);
-        window.location.reload();
+        // لا حاجة لإعادة تحميل الصفحة؛ سيتم تحديث البيانات تلقائيًا عبر onSnapshot
       } catch (error) {
         console.error(error);
+        alert("حدث خطأ أثناء تحديث المخزون.");
       }
     };
 
+    // دالة لتحديث المبيعات
     window.updateSold = async (event, itemId, collectionName) => {
       event.preventDefault();
       const soldQuantity = parseInt(event.target.querySelector("input").value);
+      if (isNaN(soldQuantity) || soldQuantity < 0) {
+        alert("الرجاء إدخال قيمة صحيحة للمبيعات.");
+        return;
+      }
       try {
         const itemDoc = doc(db, collectionName, itemId);
         const itemData = (await getDoc(itemDoc)).data();
@@ -157,79 +209,114 @@
         const updatedStock = itemData.stock - soldQuantity;
 
         if (updatedStock < 0) {
-          alert("المخزون غير كافٍ.");
+          alert("المخزون غير كافٍ لإتمام هذه العملية.");
           return;
         }
 
         await updateDoc(itemDoc, { sold: updatedSold, stock: updatedStock });
         alert(`تم تحديث الكمية المباعة لـ "${itemId}" بنجاح!`);
-        window.location.reload();
+        // لا حاجة لإعادة تحميل الصفحة؛ سيتم تحديث البيانات تلقائيًا عبر onSnapshot
       } catch (error) {
         console.error(error);
+        alert("حدث خطأ أثناء تحديث المبيعات.");
       }
     };
 
-    const drawCharts = (flowerLabels, flowerSoldData, flowerStockData, chocolateLabels, chocolateSoldData, chocolateStockData) => {
-      // Flower Bar Chart
-      new Chart(document.getElementById("flower-bar-chart"), {
-        type: "bar",
-        data: {
-          labels: flowerLabels,
-          datasets: [
-            { label: "المبيعات", data: flowerSoldData, backgroundColor: "#f9c6d8" },
-            { label: "المخزون", data: flowerStockData, backgroundColor: "#d7c6f9" }
-          ]
-        }
-      });
+    // دالة لتهيئة الجداول والمخططات
+    const setupCollection = (collectionName, tableBodyId, barChartId, pieChartId, alertId) => {
+      const tableBody = document.getElementById(tableBodyId);
+      const alertElement = document.getElementById(alertId);
+      
+      const labels = [], soldData = [], stockData = [];
 
-      // Chocolate Bar Chart
-      new Chart(document.getElementById("chocolate-bar-chart"), {
-        type: "bar",
-        data: {
-          labels: chocolateLabels,
-          datasets: [
-            { label: "المبيعات", data: chocolateSoldData, backgroundColor: "#f9c6d8" },
-            { label: "المخزون", data: chocolateStockData, backgroundColor: "#d7c6f9" }
-          ]
-        }
-      });
+      const barChart = charts[`${collectionName}Bar`];
+      const pieChart = charts[`${collectionName}Pie`];
 
-      // Flower Pie Chart
-      new Chart(document.getElementById("flower-pie-chart"), {
-        type: "pie",
-        data: {
-          labels: ["المبيعات", "المخزون"],
-          datasets: [
-            {
-              data: [
-                flowerSoldData.reduce((a, b) => a + b, 0),
-                flowerStockData.reduce((a, b) => a + b, 0)
-              ],
-              backgroundColor: ["#f9c6d8", "#d7c6f9"]
-            }
-          ]
-        }
-      });
+      onSnapshot(collection(db, collectionName), (snapshot) => {
+        tableBody.innerHTML = ""; // مسح المحتوى الحالي
+        labels.length = 0;
+        soldData.length = 0;
+        stockData.length = 0;
 
-      // Chocolate Pie Chart
-      new Chart(document.getElementById("chocolate-pie-chart"), {
-        type: "pie",
-        data: {
-          labels: ["المبيعات", "المخزون"],
-          datasets: [
-            {
-              data: [
-                chocolateSoldData.reduce((a, b) => a + b, 0),
-                chocolateStockData.reduce((a, b) => a + b, 0)
-              ],
-              backgroundColor: ["#f9c6d8", "#d7c6f9"]
-            }
-          ]
+        let totalSold = 0;
+        let totalStock = 0;
+
+        const lowStockItems = []; // مصفوفة لتخزين أسماء العناصر ذات المخزون المنخفض
+
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          labels.push(docSnap.id);
+          soldData.push(data.sold);
+          stockData.push(data.stock);
+
+          totalSold += data.sold;
+          totalStock += data.stock;
+
+          // التحقق من المخزون المنخفض
+          if (data.stock <= 20) {
+            lowStockItems.push(docSnap.id);
+          }
+
+          // إنشاء صف جديد في الجدول
+          const row = tableBody.insertRow();
+          if (data.stock <= 20) {
+            row.classList.add("low-stock");
+          }
+          row.innerHTML = `
+            <td>${docSnap.id}</td>
+            <td>${data.sold}</td>
+            <td>${data.stock}</td>
+            <td>
+              <form onsubmit="updateStock(event, '${docSnap.id}', '${collectionName}')">
+                <input type="number" placeholder="كمية جديدة" min="0" required>
+                <button type="submit">تحديث المخزون</button>
+              </form>
+            </td>
+            <td>
+              <form onsubmit="updateSold(event, '${docSnap.id}', '${collectionName}')">
+                <input type="number" placeholder="كمية مباعة" min="0" required>
+                <button type="submit">تحديث المبيعات</button>
+              </form>
+            </td>
+          `;
+        });
+
+        // تحديث المخططات
+        barChart.data.labels = labels;
+        barChart.data.datasets[0].data = soldData;
+        barChart.data.datasets[1].data = stockData;
+        barChart.update();
+
+        pieChart.data.datasets[0].data = [totalSold, totalStock];
+        pieChart.update();
+
+        // تحديث التنبيه بعناصر المخزون المنخفض
+        if (lowStockItems.length > 0) {
+          alertElement.style.display = "block";
+          alertElement.innerHTML = `
+            <strong>تنبيه:</strong> بعض العناصر لديها مخزون منخفض!<br>
+            <strong>العناصر:</strong>
+            <ul>
+              ${lowStockItems.map(item => `<li>${item}</li>`).join('')}
+            </ul>
+          `;
+        } else {
+          alertElement.style.display = "none";
         }
+      }, (error) => {
+        console.error("خطأ في جلب البيانات:", error);
       });
     };
 
-    window.onload = fetchData;
+    // دالة لرسم المخططات
+    const drawCharts = () => {
+      initializeCharts();
+      setupCollection("flower", "flower-table-body", "flower-bar-chart", "flower-pie-chart", "flower-low-stock-alert");
+      setupCollection("chocolate", "chocolate-table-body", "chocolate-bar-chart", "chocolate-pie-chart", "chocolate-low-stock-alert");
+    };
+
+    // استدعاء الدالة عند تحميل الصفحة
+    window.onload = drawCharts;
   </script>
 </head>
 <body>
@@ -237,6 +324,9 @@
   <div class="container">
     <div class="section">
       <h2>الزهور</h2>
+      <div id="flower-low-stock-alert" class="alert">
+        <!-- سيتم ملء هذه الخانة ديناميكيًا عبر JavaScript -->
+      </div>
       <table>
         <thead>
           <tr>
@@ -247,7 +337,9 @@
             <th>تحديث المبيعات</th>
           </tr>
         </thead>
-        <tbody id="flower-table-body"></tbody>
+        <tbody id="flower-table-body">
+          <!-- يتم ملء هذه الخانة ديناميكيًا عبر JavaScript -->
+        </tbody>
       </table>
       <div class="chart-container">
         <div class="chart">
@@ -261,6 +353,9 @@
 
     <div class="section">
       <h2>الشوكولاتة</h2>
+      <div id="chocolate-low-stock-alert" class="alert">
+        <!-- سيتم ملء هذه الخانة ديناميكيًا عبر JavaScript -->
+      </div>
       <table>
         <thead>
           <tr>
@@ -271,7 +366,9 @@
             <th>تحديث المبيعات</th>
           </tr>
         </thead>
-        <tbody id="chocolate-table-body"></tbody>
+        <tbody id="chocolate-table-body">
+          <!-- يتم ملء هذه الخانة ديناميكيًا عبر JavaScript -->
+        </tbody>
       </table>
       <div class="chart-container">
         <div class="chart">
