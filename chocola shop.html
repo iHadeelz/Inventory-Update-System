@@ -6,179 +6,202 @@
   <title>إدارة المخزون والمبيعات</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom, #f9f7ff, #fef5f5);
-      margin: 0;
-      padding: 0;
-    }
-    h1, h2 {
-      text-align: center;
-      color: #5e60ce;
-    }
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-around;
-      padding: 20px;
-    }
-    .section {
-      background: #ffffff;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      width: 100%;
-      margin: 10px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 20px 0;
-    }
-    th, td {
-      padding: 10px;
-      text-align: center;
-      border: 1px solid #dee2e6;
-    }
-    th {
-      background-color: #5e60ce;
-      color: #fff;
-    }
-    td {
-      background-color: #f9f9ff;
-    }
-    input[type="number"] {
-      padding: 5px;
-      width: 60%;
-      margin: 5px 0;
-    }
-    button {
-      padding: 5px 10px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    .chart-container {
-      display: flex;
-      justify-content: space-between; /* Align charts side by side */
-      flex-wrap: wrap;
-      margin-top: 20px;
-    }
-    .chart {
-      width: 48%; /* Each chart takes up about half the width */
-      max-height: 400px;
-      margin-bottom: 20px;
-    }
-    canvas {
-      margin: 10px;
-      width: 100%;
-      height: auto;
-    }
-    .low-stock {
-      background-color: #ffe5e5 !important;
-    }
-    .alert {
-      display: none;
-      padding: 10px;
-      background-color: #ffcccc;
-      color: #a94442;
-      border: 1px solid #ebccd1;
-      border-radius: 5px;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    .alert ul {
-      list-style-type: none;
-      padding: 0;
-      margin: 0;
-    }
-    .alert ul li {
-      margin: 5px 0;
-    }
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(to bottom, #e0eafc, #cfdef3);
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2 {
+  text-align: center;
+  color: #34495e;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  padding: 20px;
+}
+
+.section {
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  padding: 20px;
+  width: 100%;
+  margin: 20px 0;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.section:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+th, td {
+  padding: 15px;
+  text-align: center;
+  border: 1px solid #dee2e6;
+}
+
+th {
+  background-color: #2c3e50;
+  color: #ffffff;
+  font-size: 1.1em;
+}
+
+td {
+  background-color: #f9f9ff;
+  color: #2c3e50;
+}
+
+td:hover {
+  background-color: #f1f4fa;
+}
+
+.low-stock {
+  background-color: #ffeded !important;
+  color: #d32f2f;
+  font-weight: bold;
+}
+
+input[type="number"] {
+  padding: 10px;
+  width: 75%;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  margin: 10px 0;
+  font-size: 0.9em;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #3498db;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9em;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+button:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.chart-container {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.chart {
+  width: 48%;
+  max-height: 400px;
+  margin-bottom: 20px;
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  padding: 15px;
+}
+
+canvas {
+  margin: 10px 0;
+  width: 100%;
+  height: auto;
+}
+
+.alert {
+  display: none;
+  padding: 15px;
+  background-color: #ffeeba;
+  color: #856404;
+  border: 1px solid #ffeeba;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.alert ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.alert ul li {
+  margin: 5px 0;
+}
+
+
   </style>
-  <script type="module">
-    // استيراد مكتبات Firebase
+<script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getFirestore, collection, onSnapshot, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDpcC19rBalRZthRuXnG1ZrqFp5ESusi0Q",
-  authDomain: "chocola-shop.firebaseapp.com",
-  databaseURL: "https://chocola-shop-default-rtdb.firebaseio.com",
-  projectId: "chocola-shop",
-  storageBucket: "chocola-shop.firebasestorage.app",
-  messagingSenderId: "646662470531",
-  appId: "1:646662470531:web:785c7a73df9f4c4ee214b6",
-  measurementId: "G-GY685CK7M9"
-};
-
-    // تهيئة تطبيق Firebase
+  
+    const firebaseConfig = {
+      apiKey: "AIzaSyDpcC19rBalRZthRuXnG1ZrqFp5ESusi0Q",
+      authDomain: "chocola-shop.firebaseapp.com",
+      databaseURL: "https://chocola-shop-default-rtdb.firebaseio.com",
+      projectId: "chocola-shop",
+      storageBucket: "chocola-shop.firebasestorage.app",
+      messagingSenderId: "646662470531",
+      appId: "1:646662470531:web:785c7a73df9f4c4ee214b6",
+      measurementId: "G-GY685CK7M9"
+    };
+  
     const app = initializeApp(firebaseConfig);
-    // إنشاء اتصال بقاعدة بيانات Firestore
     const db = getFirestore(app);
-
-    // دوال المساعدة لرسم المخططات
+  
     let charts = {};
-
+  
     const initializeCharts = () => {
-      // مخططات الزهور
       charts.flowerBar = new Chart(document.getElementById("flower-bar-chart"), {
         type: "bar",
         data: {
           labels: [],
           datasets: [
-            { label: "المبيعات", data: [], backgroundColor: "#f9c6d8" },
-            { label: "المخزون", data: [], backgroundColor: "#d7c6f9" }
+            { label: "المبيعات", data: [], backgroundColor: "#CF581DFF" },
+            { label: "المخزون", data: [], backgroundColor: "#50D4F5FF" },
+            { label: "الأرباح", data: [], backgroundColor: "#FFC107" }
           ]
         },
         options: { responsive: true, maintainAspectRatio: false }
       });
-
-      charts.flowerPie = new Chart(document.getElementById("flower-pie-chart"), {
-        type: "pie",
-        data: {
-          labels: ["المبيعات", "المخزون"],
-          datasets: [{
-            data: [0, 0],
-            backgroundColor: ["#f9c6d8", "#d7c6f9"]
-          }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-      });
-
-      // مخططات الشوكولاتة
+  
       charts.chocolateBar = new Chart(document.getElementById("chocolate-bar-chart"), {
         type: "bar",
         data: {
           labels: [],
           datasets: [
-            { label: "المبيعات", data: [], backgroundColor: "#f9c6d8" },
-            { label: "المخزون", data: [], backgroundColor: "#d7c6f9" }
+            { label: "المبيعات", data: [], backgroundColor: "#CF581DFF" },
+            { label: "المخزون", data: [], backgroundColor: "#50D4F5FF" },
+            { label: "الأرباح", data: [], backgroundColor: "#FFC107" }
           ]
         },
         options: { responsive: true, maintainAspectRatio: false }
       });
-
-      charts.chocolatePie = new Chart(document.getElementById("chocolate-pie-chart"), {
-        type: "pie",
-        data: {
-          labels: ["المبيعات", "المخزون"],
-          datasets: [{
-            data: [0, 0],
-            backgroundColor: ["#f9c6d8", "#d7c6f9"]
-          }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-      });
     };
-
-    // دالة لتحديث المخزون
+  
     window.updateStock = async (event, itemId, collectionName) => {
       event.preventDefault();
       const newStockValue = parseInt(event.target.querySelector("input").value);
@@ -192,14 +215,12 @@ const firebaseConfig = {
         const updatedStock = itemData.stock + newStockValue;
         await updateDoc(itemDoc, { stock: updatedStock });
         alert(`تم تحديث المخزون لـ "${itemId}" بنجاح! الكمية الجديدة: ${updatedStock}`);
-        // لا حاجة لإعادة تحميل الصفحة؛ سيتم تحديث البيانات تلقائيًا عبر onSnapshot
       } catch (error) {
         console.error(error);
         alert("حدث خطأ أثناء تحديث المخزون.");
       }
     };
-
-    // دالة لتحديث المبيعات
+  
     window.updateSold = async (event, itemId, collectionName) => {
       event.preventDefault();
       const soldQuantity = parseInt(event.target.querySelector("input").value);
@@ -212,89 +233,94 @@ const firebaseConfig = {
         const itemData = (await getDoc(itemDoc)).data();
         const updatedSold = itemData.sold + soldQuantity;
         const updatedStock = itemData.stock - soldQuantity;
-
+  
         if (updatedStock < 0) {
           alert("المخزون غير كافٍ لإتمام هذه العملية.");
           return;
-        }
-
+        } 
+  
         await updateDoc(itemDoc, { sold: updatedSold, stock: updatedStock });
         alert(`تم تحديث الكمية المباعة لـ "${itemId}" بنجاح!`);
-        // لا حاجة لإعادة تحميل الصفحة؛ سيتم تحديث البيانات تلقائيًا عبر onSnapshot
       } catch (error) {
         console.error(error);
         alert("حدث خطأ أثناء تحديث المبيعات.");
       }
     };
-
-    // دالة لتهيئة الجداول والمخططات
-    const setupCollection = (collectionName, tableBodyId, barChartId, pieChartId, alertId) => {
+  
+    const setupCollection = (collectionName, tableBodyId, barChartId, alertId) => {
       const tableBody = document.getElementById(tableBodyId);
       const alertElement = document.getElementById(alertId);
-      
-      const labels = [], soldData = [], stockData = [];
-
+  
+      const labels = [], soldData = [], stockData = [], profitData = [];
+  
       const barChart = charts[`${collectionName}Bar`];
-      const pieChart = charts[`${collectionName}Pie`];
-
+  
       onSnapshot(collection(db, collectionName), (snapshot) => {
         tableBody.innerHTML = ""; // مسح المحتوى الحالي
         labels.length = 0;
         soldData.length = 0;
         stockData.length = 0;
-
+        profitData.length = 0;
+  
         let totalSold = 0;
         let totalStock = 0;
-
+  
         const lowStockItems = []; // مصفوفة لتخزين أسماء العناصر ذات المخزون المنخفض
-
+  
         snapshot.forEach((docSnap) => {
           const data = docSnap.data();
+          const soldQuantity = data.sold || 0;
+          const price = data.price || 0; // اجلب السعر
+          const profit = soldQuantity * price; // حساب الأرباح
+  
           labels.push(docSnap.id);
-          soldData.push(data.sold);
+          soldData.push(soldQuantity);
           stockData.push(data.stock);
-
-          totalSold += data.sold;
+          profitData.push(profit);
+  
+          totalSold += soldQuantity;
           totalStock += data.stock;
-
+  
           // التحقق من المخزون المنخفض
           if (data.stock <= 20) {
             lowStockItems.push(docSnap.id);
           }
+  // إنشاء صف جديد في الجدول
+const row = tableBody.insertRow();
+row.innerHTML = `
+  <td>${docSnap.id}</td>
+  <td>${soldQuantity}</td>
+  <td>${data.stock}</td>
+  <td>${price} ريال</td>
+  <td>${data.profit || profit} ريال</td> <!-- عرض الأرباح المحفوظة أو المحسوبة -->
+  <td>
+    <form onsubmit="updateStock(event, '${docSnap.id}', '${collectionName}')">
+      <input type="number" placeholder="كمية جديدة" min="0" required>
+      <button type="submit">تحديث المخزون</button>
+    </form>
+  </td>
+  <td>
+    <form onsubmit="updateSold(event, '${docSnap.id}', '${collectionName}')">
+      <input type="number" placeholder="كمية مباعة" min="0" required>
+      <button type="submit">تحديث المبيعات</button>
+    </form>
+  </td>
+`;
 
-          // إنشاء صف جديد في الجدول
-          const row = tableBody.insertRow();
+
+          // التحقق من المخزون المنخفض
           if (data.stock <= 20) {
             row.classList.add("low-stock");
           }
-          row.innerHTML = `
-            <td>${docSnap.id}</td>
-            <td>${data.sold}</td>
-            <td>${data.stock}</td>
-            <td>
-              <form onsubmit="updateStock(event, '${docSnap.id}', '${collectionName}')">
-                <input type="number" placeholder="كمية جديدة" min="0" required>
-                <button type="submit">تحديث المخزون</button>
-              </form>
-            </td>
-            <td>
-              <form onsubmit="updateSold(event, '${docSnap.id}', '${collectionName}')">
-                <input type="number" placeholder="كمية مباعة" min="0" required>
-                <button type="submit">تحديث المبيعات</button>
-              </form>
-            </td>
-          `;
         });
-
+  
         // تحديث المخططات
         barChart.data.labels = labels;
-        barChart.data.datasets[0].data = soldData;
-        barChart.data.datasets[1].data = stockData;
+        barChart.data.datasets[0].data = soldData; // المبيعات
+        barChart.data.datasets[1].data = stockData; // المخزون
+        barChart.data.datasets[2].data = profitData; // الأرباح
         barChart.update();
-
-        pieChart.data.datasets[0].data = [totalSold, totalStock];
-        pieChart.update();
-
+  
         // تحديث التنبيه بعناصر المخزون المنخفض
         if (lowStockItems.length > 0) {
           alertElement.style.display = "block";
@@ -312,78 +338,167 @@ const firebaseConfig = {
         console.error("خطأ في جلب البيانات:", error);
       });
     };
-
-    // دالة لرسم المخططات
+  
     const drawCharts = () => {
       initializeCharts();
-      setupCollection("flower", "flower-table-body", "flower-bar-chart", "flower-pie-chart", "flower-low-stock-alert");
-      setupCollection("chocolate", "chocolate-table-body", "chocolate-bar-chart", "chocolate-pie-chart", "chocolate-low-stock-alert");
+      setupCollection("flower", "flower-table-body", "flower-bar-chart", "flower-low-stock-alert");
+      setupCollection("chocolate", "chocolate-table-body", "chocolate-bar-chart", "chocolate-low-stock-alert");
     };
+    window.updateSold = async (event, itemId, collectionName) => {
+    event.preventDefault();
+    const soldQuantity = parseInt(event.target.querySelector("input").value);
+    if (isNaN(soldQuantity) || soldQuantity < 0) {
+        alert("الرجاء إدخال قيمة صحيحة للمبيعات.");
+        return;
+    }
+    try {
+        const itemDoc = doc(db, collectionName, itemId);
+        const itemData = (await getDoc(itemDoc)).data();
+        const updatedSold = itemData.sold + soldQuantity;
 
-    // استدعاء الدالة عند تحميل الصفحة
+        // تحقق من إذا كانت المبيعات أعلى من المخزون
+        let updatedStock = itemData.stock - soldQuantity;
+        if (updatedStock < 0) {
+            // زيادة المخزون لتغطية المبيعات
+            const stockToAdd = Math.abs(updatedStock);
+            updatedStock = 0; // المخزون بعد البيع سيكون صفر
+            await updateDoc(itemDoc, { stock: itemData.stock + stockToAdd });
+            alert(`تم إضافة ${stockToAdd} إلى المخزون لتغطية المبيعات.`);
+        }
+
+        await updateDoc(itemDoc, { sold: updatedSold, stock: updatedStock });
+        alert(`تم تحديث الكمية المباعة لـ "${itemId}" بنجاح!`);
+    } catch (error) {
+        console.error(error);
+        alert("حدث خطأ أثناء تحديث المبيعات.");
+    }
+};
+window.updateSold = async (event, itemId, collectionName) => {
+    event.preventDefault();
+    const soldQuantity = parseInt(event.target.querySelector("input").value);
+    if (isNaN(soldQuantity) || soldQuantity < 0) {
+        alert("الرجاء إدخال قيمة صحيحة للمبيعات.");
+        return;
+    }
+    try {
+        const itemDoc = doc(db, collectionName, itemId);
+        const itemData = (await getDoc(itemDoc)).data();
+        const updatedSold = itemData.sold + soldQuantity;
+
+        // تحقق من إذا كانت المبيعات أعلى من المخزون
+        let updatedStock = itemData.stock - soldQuantity;
+        if (updatedStock < 0) {
+            // زيادة المخزون لتغطية المبيعات
+            const stockToAdd = Math.abs(updatedStock);
+            updatedStock = 0; // المخزون بعد البيع سيكون صفر
+            await updateDoc(itemDoc, { stock: itemData.stock + stockToAdd });
+            alert(`تم إضافة ${stockToAdd} إلى المخزون لتغطية المبيعات.`);
+        }
+
+        // حساب الأرباح
+        const profit = (itemData.profit || 0) + (soldQuantity * itemData.price);
+
+await updateDoc(itemDoc, {
+  sold: updatedSold,
+  stock: updatedStock,
+  profit: profit // تأكد من تخزين الأرباح هنا
+});
+
+        alert(`تم تحديث الكمية المباعة لـ "${itemId}" بنجاح!`);
+    } catch (error) {
+        console.error(error);
+        alert("حدث خطأ أثناء تحديث المبيعات.");
+    }
+};
+window.updateSold = async (event, itemId, collectionName) => {
+    event.preventDefault();
+    const soldQuantity = parseInt(event.target.querySelector("input").value);
+    if (isNaN(soldQuantity) || soldQuantity < 0) {
+        alert("الرجاء إدخال قيمة صحيحة للمبيعات.");
+        return;
+    }
+    try {
+        const itemDoc = doc(db, collectionName, itemId);
+        const itemData = (await getDoc(itemDoc)).data();
+        const updatedSold = itemData.sold + soldQuantity;
+
+        // تحقق من إذا كانت المبيعات أعلى من المخزون
+        let updatedStock = itemData.stock - soldQuantity;
+
+        if (updatedStock < 0) {
+            // عرض تحذير خاص
+            const profitForThisProduct = itemData.price * soldQuantity;
+            alert(`⚠️ تحذير: المخزون الخاص بـ "${itemId}" (${itemData.stock}) أقل من الكمية المطلوبة (${soldQuantity}).\nالأرباح المحتملة: ${profitForThisProduct} ريال.\nيرجى مراجعة المخزون.`);
+            return; // إيقاف العملية إذا كان المخزون غير كافٍ
+        }
+
+        // حساب الأرباح
+        const profit = (itemData.profit || 0) + (soldQuantity * itemData.price);
+
+        // تحديث البيانات في قاعدة البيانات
+        await updateDoc(itemDoc, {
+            sold: updatedSold,
+            stock: updatedStock,
+            profit: profit
+        });
+
+        alert(`✅ تم تحديث الكمية المباعة لـ "${itemId}" بنجاح!`);
+    } catch (error) {
+        console.error(error);
+        alert("❌ حدث خطأ أثناء تحديث المبيعات.");
+    }
+};
+
+  
     window.onload = drawCharts;
   </script>
 </head>
 <body>
-  <h1>إدارة المخزون والمبيعات</h1>
-  <div class="container">
-    <div class="section">
-      <h2>الزهور</h2>
-      <div id="flower-low-stock-alert" class="alert">
-        <!-- سيتم ملء هذه الخانة ديناميكيًا عبر JavaScript -->
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>الاسم</th>
-            <th>المبيعات</th>
-            <th>المخزون</th>
-            <th>تحديث المخزون</th>
-            <th>تحديث المبيعات</th>
-          </tr>
-        </thead>
-        <tbody id="flower-table-body">
-          <!-- يتم ملء هذه الخانة ديناميكيًا عبر JavaScript -->
-        </tbody>
-      </table>
-      <div class="chart-container">
-        <div class="chart">
-          <canvas id="flower-bar-chart"></canvas>
-        </div>
-        <div class="chart">
-          <canvas id="flower-pie-chart"></canvas>
+    <h1>إدارة المخزون والمبيعات</h1>
+    <div class="container">
+      <div class="section">
+        <h2>الزهور</h2>
+        <div id="flower-low-stock-alert" class="alert"></div>
+        <table>
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>المبيعات</th>
+              <th>المخزون</th>
+              <th>السعر</th>
+              <th>الأرباح</th>
+            </tr>
+          </thead>
+          <tbody id="flower-table-body"></tbody>
+        </table>
+        <div class="chart-container">
+          <div class="chart">
+            <canvas id="flower-bar-chart"></canvas>
+          </div>
         </div>
       </div>
-    </div>
-
-    <div class="section">
-      <h2>الشوكولاتة</h2>
-      <div id="chocolate-low-stock-alert" class="alert">
-        <!-- سيتم ملء هذه الخانة ديناميكيًا عبر JavaScript -->
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>الاسم</th>
-            <th>المبيعات</th>
-            <th>المخزون</th>
-            <th>تحديث المخزون</th>
-            <th>تحديث المبيعات</th>
-          </tr>
-        </thead>
-        <tbody id="chocolate-table-body">
-          <!-- يتم ملء هذه الخانة ديناميكيًا عبر JavaScript -->
-        </tbody>
-      </table>
-      <div class="chart-container">
-        <div class="chart">
-          <canvas id="chocolate-bar-chart"></canvas>
-        </div>
-        <div class="chart">
-          <canvas id="chocolate-pie-chart"></canvas>
+  
+      <div class="section">
+        <h2>الشوكولاتة</h2>
+        <div id="chocolate-low-stock-alert" class="alert"></div>
+        <table>
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>المبيعات</th>
+              <th>المخزون</th>
+              <th>السعر</th>
+              <th>الأرباح</th>
+            </tr>
+          </thead>
+          <tbody id="chocolate-table-body"></tbody>
+        </table>
+        <div class="chart-container">
+          <div class="chart">
+            <canvas id="chocolate-bar-chart"></canvas>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 </body>
 </html>
